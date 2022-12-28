@@ -23,48 +23,53 @@ public class GherkinToJsonByGitLink {
 
     static JSONArray ScenarioData = new JSONArray();
 
-    public static String getApiUrl(String gitUrl) {
-        String apiUrl = "";
-       try{
-           Pattern p = Pattern.compile("https://github.com/(.+)/(.+)");
-           Matcher m = p.matcher(gitUrl);
-           if (m.find()) {
-               String username = m.group(1);
-               String repoName = m.group(2);
-               apiUrl = "https://api.github.com/repos/" + username + "/" + repoName + "/contents/src/main/resources/features";
-           }
-       }catch (Exception e){
-           e.printStackTrace();
-       }
-        return apiUrl;
+    public static List<String> GetFeatureFileUrls(String GitProjectUrl,String branchName){
+        List<String >featureUrls=new ArrayList<>();
+        try{
+            Pattern p = Pattern.compile("https://github.com/(.+)/(.+)");
+            Matcher m = p.matcher(GitProjectUrl);
+            if (m.find()) {
+                String username = m.group(1);
+                String repoName = m.group(2);
+                String Durl="https://api.github.com/repos/"+username+"/"+repoName+"/git/trees/master?recursive=1";
+                if(!branchName.equals("")){
+                    Durl="https://api.github.com/repos/"+username+"/"+repoName+"/git/trees/"+branchName+"?recursive=1";
+                }
+                URL url = new URL(Durl);
+                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                con.setRequestMethod("GET");
+                BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+                String inputLine;
+                StringBuilder content = new StringBuilder();
+                while ((inputLine = in.readLine()) != null) {
+                    content.append(inputLine);
+                }
+                in.close();
+                JSONObject response = new JSONObject(content.toString());
+                JSONArray tree= (JSONArray) response.get("tree");
+                for (int i=0;i< tree.length();i++){
+                    JSONObject temp= (JSONObject) tree.get(i);
+                    if((temp.get("path").toString()).contains(".feature")) {
+                        if(!branchName.equals("")){
+                            featureUrls.add("https://raw.githubusercontent.com/"+username+"/"+repoName+"/"+branchName+"/"+temp.get("path").toString());
+                        }
+                        else{
+                            featureUrls.add("https://raw.githubusercontent.com/"+username+"/"+repoName+"/master/"+temp.get("path").toString());
+                        }
+                    }
+                }
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return featureUrls;
     }
 
-    public static List<String> GetAllFeatureFileUrlsFromGit(String ApiUrl){
-        List<String> featureFiles = new ArrayList<>();
-       try{
-           URL url = new URL(ApiUrl);
-           HttpURLConnection con = (HttpURLConnection) url.openConnection();
-           con.setRequestMethod("GET");
-           BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-           String inputLine;
-           StringBuilder content = new StringBuilder();
-           while ((inputLine = in.readLine()) != null) {
-               content.append(inputLine);
-           }
-           in.close();
-           JSONArray response = new JSONArray(content.toString());
-           for (int i = 0; i < response.length(); i++) {
-               if(response.getJSONObject(i).getString("download_url").contains(".feature")) {
-                   featureFiles.add(response.getJSONObject(i).getString("download_url"));
-               }
-           }
-       }catch (Exception e){
-           e.printStackTrace();
-       }
-        return featureFiles;
+    public static List<String> GetFeatureFileUrls(String GitProjectUrl){
+        return GetFeatureFileUrls(GitProjectUrl,"");
     }
 
-    public static Feature GetFeatureFileFromGit(String GitDUrl){
+    public static Feature GetFeatureFile(String GitDUrl){
     try{
         URL Url = new URL(GitDUrl);
         HttpURLConnection Http = (HttpURLConnection) Url.openConnection();
@@ -156,17 +161,26 @@ public class GherkinToJsonByGitLink {
       }
     }
 
-    public static JSONArray GetFeatureJsonFromGit(String GitProjectUrl){
+    public static JSONArray GetFeatureJsonFromGit(String GitProjectUrl,String branchName){
       try{
-          List<String> featureFilesUrl = GetAllFeatureFileUrlsFromGit(getApiUrl(GitProjectUrl));
+          List<String> featureFilesUrl;
+          if(branchName.equals("")){
+              featureFilesUrl= GetFeatureFileUrls(GitProjectUrl);
+          }else{
+              featureFilesUrl = GetFeatureFileUrls(GitProjectUrl,branchName);
+          }
           for (String s : featureFilesUrl) {
-              Feature feature = GetFeatureFileFromGit(s);
+              Feature feature = GetFeatureFile(s);
               ConvertFeatureJson(feature);
           }
       }catch (Exception e){
           e.printStackTrace();
       }
         return ScenarioData;
+    }
+
+    public static JSONArray GetFeatureJsonFromGit(String GitProjectUrl){
+        return GetFeatureJsonFromGit(GitProjectUrl,"");
     }
 
     public static void main(String[] args){
