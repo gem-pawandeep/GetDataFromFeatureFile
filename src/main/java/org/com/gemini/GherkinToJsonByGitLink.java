@@ -160,7 +160,7 @@ public class GherkinToJsonByGitLink {
       try{
           List<String> featureFilesUrl = GetAllFeatureFileUrlsFromGit(getApiUrl(GitProjectUrl));
           for (String s : featureFilesUrl) {
-              Feature feature = GetFeatureFileFromGit(s.replace("\"", ""));
+              Feature feature = GetFeatureFileFromGit(s);
               ConvertFeatureJson(feature);
           }
       }catch (Exception e){
@@ -171,8 +171,8 @@ public class GherkinToJsonByGitLink {
 
     public static void main(String[] args){
         String gitUrl = "https://github.com/gem-pawandeep/GemEcoSystem-API-JV";
-        gitUrl="https://github.com/gem-maulickbharadwaj/JewelUi-AutomationBDD";
-        gitUrl="https://github.com/gem-pawandeep/TickerTapeCucumber-Updated_Version";
+//        gitUrl="https://github.com/gem-maulickbharadwaj/JewelUi-AutomationBDD";
+//        gitUrl="https://github.com/gem-pawandeep/TickerTapeCucumber-Updated_Version";
         System.out.println(GetFeatureJsonFromGit(gitUrl));
     }
 }
