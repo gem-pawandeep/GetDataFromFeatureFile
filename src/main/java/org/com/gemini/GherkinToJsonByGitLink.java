@@ -199,7 +199,6 @@ public class GherkinToJsonByGitLink {
         String gitUrl = "https://github.com/gem-pawandeep/GemEcoSystem-API-JV";
 //        gitUrl="https://github.com/gem-maulickbharadwaj/JewelUi-AutomationBDD";
 //        gitUrl="https://github.com/gem-pawandeep/TickerTapeCucumber-Updated_Version";
-//        System.out.println(GetFeatureJsonFromGit(gitUrl,"master","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"));
         System.out.println(GetFeatureJsonFromGit(gitUrl,"master"));
     }
 
