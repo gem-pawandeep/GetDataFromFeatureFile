@@ -69,10 +69,13 @@ public class GherkinToJsonByGitLink {
         return GetFeatureFileUrls(GitProjectUrl,branchName,"");
     }
 
-    public static Feature GetFeatureFile(String GitDUrl){
+    public static Feature GetFeatureFile(String GitDUrl,String BearerToken){
     try{
         URL Url = new URL(GitDUrl);
         HttpURLConnection Http = (HttpURLConnection) Url.openConnection();
+        if(!BearerToken.equals("")){
+            Http.setRequestProperty("Authorization", "Bearer "+BearerToken);
+        }
         Map<String, List<String>> Header = Http.getHeaderFields();
         for (String header : Header.get(null)) {
             if (header.contains(" 302 ") || header.contains(" 301 ")) {
@@ -91,6 +94,10 @@ public class GherkinToJsonByGitLink {
         e.printStackTrace();
     }
     return null;
+    }
+
+    public static Feature GetFeatureFile(String GitDUrl){
+        return GetFeatureFile(GitDUrl,"");
     }
 
     public static void ConvertFeatureJson(Feature features) {
@@ -170,8 +177,13 @@ public class GherkinToJsonByGitLink {
               featureFilesUrl = GetFeatureFileUrls(GitProjectUrl,branchName);
           }
           for (String s : featureFilesUrl) {
-              Feature feature = GetFeatureFile(s);
-              ConvertFeatureJson(feature);
+              if(!BearerToken.equals("")){
+                  Feature feature = GetFeatureFile(s,BearerToken);
+                  ConvertFeatureJson(feature);
+              }else{
+                  Feature feature = GetFeatureFile(s);
+                  ConvertFeatureJson(feature);
+              }
           }
       }catch (Exception e){
           e.printStackTrace();
@@ -187,6 +199,8 @@ public class GherkinToJsonByGitLink {
         String gitUrl = "https://github.com/gem-pawandeep/GemEcoSystem-API-JV";
 //        gitUrl="https://github.com/gem-maulickbharadwaj/JewelUi-AutomationBDD";
 //        gitUrl="https://github.com/gem-pawandeep/TickerTapeCucumber-Updated_Version";
+//        System.out.println(GetFeatureJsonFromGit(gitUrl,"master","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"));
         System.out.println(GetFeatureJsonFromGit(gitUrl,"master"));
     }
+
 }
