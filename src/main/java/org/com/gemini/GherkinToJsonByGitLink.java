@@ -23,7 +23,7 @@ public class GherkinToJsonByGitLink {
 
     static JSONArray ScenarioData = new JSONArray();
 
-    public static List<String> GetFeatureFileUrls(String GitProjectUrl,String branchName){
+    public static List<String> GetFeatureFileUrls(String GitProjectUrl, String branchName,String BearerToken){
         List<String >featureUrls=new ArrayList<>();
         try{
             Pattern p = Pattern.compile("https://github.com/(.+)/(.+)");
@@ -31,13 +31,13 @@ public class GherkinToJsonByGitLink {
             if (m.find()) {
                 String username = m.group(1);
                 String repoName = m.group(2);
-                String Durl="https://api.github.com/repos/"+username+"/"+repoName+"/git/trees/master?recursive=1";
-                if(!branchName.equals("")){
-                    Durl="https://api.github.com/repos/"+username+"/"+repoName+"/git/trees/"+branchName+"?recursive=1";
-                }
+                String Durl="https://api.github.com/repos/"+username+"/"+repoName+"/git/trees/"+branchName+"?recursive=1";
                 URL url = new URL(Durl);
                 HttpURLConnection con = (HttpURLConnection) url.openConnection();
                 con.setRequestMethod("GET");
+                if(!BearerToken.equals("")){
+                    con.setRequestProperty("Authorization", "Bearer "+BearerToken);
+                }
                 BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
                 String inputLine;
                 StringBuilder content = new StringBuilder();
@@ -65,8 +65,8 @@ public class GherkinToJsonByGitLink {
         return featureUrls;
     }
 
-    public static List<String> GetFeatureFileUrls(String GitProjectUrl){
-        return GetFeatureFileUrls(GitProjectUrl,"");
+    public static List<String> GetFeatureFileUrls(String GitProjectUrl, String branchName){
+        return GetFeatureFileUrls(GitProjectUrl,branchName,"");
     }
 
     public static Feature GetFeatureFile(String GitDUrl){
@@ -161,11 +161,11 @@ public class GherkinToJsonByGitLink {
       }
     }
 
-    public static JSONArray GetFeatureJsonFromGit(String GitProjectUrl,String branchName){
+    public static JSONArray GetFeatureJsonFromGit(String GitProjectUrl,String branchName,String BearerToken){
       try{
           List<String> featureFilesUrl;
-          if(branchName.equals("")){
-              featureFilesUrl= GetFeatureFileUrls(GitProjectUrl);
+          if(!BearerToken.equals("")){
+              featureFilesUrl= GetFeatureFileUrls(GitProjectUrl,branchName,BearerToken);
           }else{
               featureFilesUrl = GetFeatureFileUrls(GitProjectUrl,branchName);
           }
@@ -179,14 +179,14 @@ public class GherkinToJsonByGitLink {
         return ScenarioData;
     }
 
-    public static JSONArray GetFeatureJsonFromGit(String GitProjectUrl){
-        return GetFeatureJsonFromGit(GitProjectUrl,"");
+    public static JSONArray GetFeatureJsonFromGit(String GitProjectUrl,String branchName){
+        return GetFeatureJsonFromGit(GitProjectUrl,branchName,"");
     }
 
     public static void main(String[] args){
         String gitUrl = "https://github.com/gem-pawandeep/GemEcoSystem-API-JV";
 //        gitUrl="https://github.com/gem-maulickbharadwaj/JewelUi-AutomationBDD";
 //        gitUrl="https://github.com/gem-pawandeep/TickerTapeCucumber-Updated_Version";
-        System.out.println(GetFeatureJsonFromGit(gitUrl));
+        System.out.println(GetFeatureJsonFromGit(gitUrl,"master","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"));
     }
 }
